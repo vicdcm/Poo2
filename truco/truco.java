@@ -1,5 +1,6 @@
-
-
+import framework.Carta;
+import framework.Jogador;
+import framework.Mao;
 
 import java.util.Arrays;
 import java.util.List;
@@ -7,7 +8,6 @@ import java.util.List;
 
 public class truco 
 {
-    private final List<Carta> cartas = null;
     private void criarBaralhoTruco() {
         // Ás to 3 in all suits
         adicionarCartasRanqueadas(Arrays.asList(Constants.AS, Constants.DOIS, Constants.TRES),
