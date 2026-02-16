@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 
-public class truco 
+public class Truco 
 {
     private final List<Carta> cartas = null;
     private void criarBaralhoTruco() {
@@ -38,6 +38,25 @@ public class truco
         }
     }
 
+     private void inicializarJogadoresEDuplas(Jogador jogadores[], Dupla duplas[]) { 
+        jogadores = new Jogador[4];
+        for (int i = 0; i < 4; i++) {
+            jogadores[i] = new Jogador(i, i % 2);
+        }
+        duplas = new Dupla[]{new Dupla(0), new Dupla(1)};
+    }
+
+     private void distribuirCartas() {
+        Baralho baralho = new Baralho();
+        baralho.embaralhar();
+        for (Jogador j : jogadores) j.getMao().getCartas().clear();
+        for (int carta = 0; carta < 3; carta++) {
+            for (Jogador j : jogadores) {
+                Carta c = baralho.comprarCarta();
+                if (c != null) j.getMao().adicionar(c);
+            }
+        }
+    }
 
     
 }
