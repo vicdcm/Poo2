@@ -1,213 +1,321 @@
-import truco.TrucoJogo;
+package truco;
 
+import framework.Carta;
 
-import java.util.Arrays;
-import java.util.List;
-
-import javax.swing.JOptionPane;
-
-
-public class Truco 
+public class TrucoJogo 
 {
-    private final List<Carta> cartas = null;
-    private void criarBaralhoTruco() {
-        // Ás to 3 in all suits
-        adicionarCartasRanqueadas(Arrays.asList(Constants.AS, Constants.DOIS, Constants.TRES),
-                Arrays.asList(Constants.COPAS, Constants.OUROS, Constants.ESPADAS, Constants.PAUS));
 
-        // 4 only in Espadas and Paus (manilhas: Zape and Espadilha)
-        cartas.add(new Carta(Constants.QUATRO, Constants.ESPADAS));
-        cartas.add(new Carta(Constants.QUATRO, Constants.PAUS));
+    private JogadorTruco[] jogadores;
+    private Dupla[] duplas;
 
-        // 5 and 6 in all suits
-       adicionarCartasRanqueadas(Arrays.asList(Constants.CINCO, Constants.SEIS),
-                Arrays.asList(Constants.COPAS, Constants.OUROS, Constants.ESPADAS, Constants.PAUS));
+    private Carta[] cartasNaMesa;
 
-        // 7 only in Copas and Ouros (manilhas)
-        cartas.add(new Carta(Constants.SETE, Constants.COPAS));
-        cartas.add(new Carta(Constants.SETE, Constants.OUROS));
+    private int jogadorAtual;
+    private int jogadorQuePediuTruco;
 
-        // Faces in all suits
-        adicionarCartasRanqueadas(Arrays.asList(Constants.REI, Constants.DAMA, Constants.VALETE),
-                Arrays.asList(Constants.COPAS, Constants.OUROS, Constants.ESPADAS, Constants.PAUS));
+    private int estadoTruco;
+    private int pontuacaoAtual;
+
+    private boolean aguardandoRespostaTruco;
+
+    private int rodadaAtual;
+    private int cartasJogadasNaRodada;
+
+    private int duplaQuePodeAumentar;
+
+    private int[] placarParcial;
+
+    public TrucoJogo() 
+    {
+
+        jogadores = new JogadorTruco[4];
+        duplas = new Dupla[2];
+        cartasNaMesa = new Carta[4];
+        placarParcial = new int[2];
+
+        inicializarJogo();
     }
 
-    private void adicionarCartasRanqueadas(List<String> valores, List<String> naipes) {
-        for (String valor : valores) {
-            for (String naipe : naipes) {
-                cartas.add(new Carta(valor, naipe));
-            }
+    private void inicializarJogo() 
+    {
+
+        for (int i = 0; i < 4; i++) 
+        {
+            jogadores[i] = new JogadorTruco(i, i % 2);
         }
-    }
 
-     private void inicializarJogadoresEDuplas(Jogador jogadores[], Dupla duplas[]) { 
-        jogadores = new Jogador[4];
-        for (int i = 0; i < 4; i++) {
-            jogadores[i] = new Jogador(i, i % 2);
-        }
-        duplas = new Dupla[]{new Dupla(0), new Dupla(1)};
-    }
+        duplas[0] = new Dupla(0);
+        duplas[1] = new Dupla(1);
 
-     private void distribuirCartas(
-     Jogador[] jogadores,
-     Dupla[] duplas,
-     Carta[] cartasNaMesa,
-     int jogadorAtual,
-     int estadoTruco,
-     int pontuacaoAtual,
-     boolean aguardandoRespostaTruco,
-     int jogadorQuePediuTruco,
-     int rodadaAtual
+        jogadorAtual = 0;
 
-     ) {
-        Baralho baralho = new Baralho();
-        baralho.embaralhar();
-        for (Jogador j : jogadores) j.getMao().getCartas().clear();
-        for (int carta = 0; carta < 3; carta++) {
-            for (Jogador j : jogadores) {
-                Carta c = baralho.comprarCarta();
-                if (c != null) j.getMao().adicionar(c);
-            }
-        }
-    }
-
-     private void pedirTruco(
-     Jogador[] jogadores,
-     Dupla[] duplas,
-     Carta[] cartasNaMesa,
-     int jogadorAtual,
-     int estadoTruco,
-     int pontuacaoAtual,
-     boolean aguardandoRespostaTruco,
-     int jogadorQuePediuTruco,
-     int rodadaAtual,
-     int[] placarParcial,
-     int cartasJogadasNaRodada,
-     int duplaQuePodeAumentar,
-     int jogadorId
-    ) {
-
-     ) {
-        if (aguardandoRespostaTruco || estadoTruco >= Constants.TRUCO_DOZE || cartasJogadasNaRodada >= 2) {
-            return;
-        }
-        if (estadoTruco == Constants.TRUCO_NAO_TRUCADO) {
-            estadoTruco = Constants.TRUCO_TRUCADO;
-            pontuacaoAtual = 3;
-            jogadorQuePediuTruco = jogadorId;
-            aguardandoRespostaTruco = true;
-            duplaQuePodeAumentar = jogadores[jogadorId].getDuplaId(); // quem pediu primeiro
-            atualizarInterface();
-        }
-    }
-
-    private void aceitarTruco(
-        int jogadorId,
-        boolean aguardandoRespostaTruco,
-        int duplaQuePodeAumentar,
-        Jogador jogadores[]
-
-    ) {
-        if (!ehDuplaAdversaria(jogadorId)) return;
-        aguardandoRespostaTruco = false;
-        duplaQuePodeAumentar = jogadores[jogadorId].getDuplaId(); // quem aceitou pode aumentar
-        atualizarInterface();
-    }
-
-    private void correrTruco(
-          Jogador[] jogadores,
-     Dupla[] duplas,
-     Carta[] cartasNaMesa,
-     int jogadorAtual,
-     int estadoTruco,
-     int pontuacaoAtual,
-     boolean aguardandoRespostaTruco,
-     int jogadorQuePediuTruco,
-     int rodadaAtual,
-     int jogadorId
-    ) {
-        if (!ehDuplaAdversaria(jogadorId)) return;
-        int duplaPediu = jogadores[jogadorQuePediuTruco].getDuplaId();
-        int pontos;
-        switch (estadoTruco) {
-            case Constants.TRUCO_NAO_TRUCADO:
-            case Constants.TRUCO_TRUCADO:
-                pontos = 1;
-                break;
-            case Constants.TRUCO_SEIS:
-                pontos = 3;
-                break;
-            case Constants.TRUCO_NOVE:
-                pontos = 6;
-                break;
-            case Constants.TRUCO_DOZE:
-                pontos = 9;
-                break;
-            default:
-                pontos = 1;
-        }
-        duplas[duplaPediu].adicionarPontos(pontos);
-        JOptionPane.showMessageDialog(this, "Dupla " + duplaPediu + " ganhou " + pontos + " ponto(s)!");
         reiniciarMao();
     }
 
-    private void aumentarTruco(
-        int jogadorId, 
-        int novoEstado, 
-        int novaPontuacao,
-        Jogador[] jogadores,
-        Dupla[] duplas,
-        Carta[] cartasNaMesa,
-        int jogadorAtual,
-        int estadoTruco,
-        int pontuacaoAtual,
-        boolean aguardandoRespostaTruco,
-        int jogadorQuePediuTruco,
-        int rodadaAtual,
-        int duplaQuePodeAumentar
-    ) {
-        if (aguardandoRespostaTruco) return;
+    public void distribuirCartas() 
+    {
 
-        int estadoEsperado = -1;
-        if (novoEstado == Constants.TRUCO_SEIS) estadoEsperado = Constants.TRUCO_TRUCADO;
-        else if (novoEstado == Constants.TRUCO_NOVE) estadoEsperado = Constants.TRUCO_SEIS;
-        else if (novoEstado == Constants.TRUCO_DOZE) estadoEsperado = Constants.TRUCO_NOVE;
-        else return;
+        BaralhoTruco baralho = new BaralhoTruco();
+        baralho.embaralhar();
 
-        if (estadoTruco != estadoEsperado) return;
-        if (jogadores[jogadorId].getDuplaId() != duplaQuePodeAumentar) return;
-
-        estadoTruco = novoEstado;
-        pontuacaoAtual = novaPontuacao;
-        jogadorQuePediuTruco = jogadorId;
-        aguardandoRespostaTruco = true;
-        duplaQuePodeAumentar = 1 - jogadores[jogadorId].getDuplaId(); // passa para a outra dupla
-        atualizarInterface();
-    }
-
-    private boolean ehDuplaAdversaria(int jogadorId, Jogador[] jogadores, int jogadorQuePediuTruco, boolean aguardandoRespostaTruco) {
-        return aguardandoRespostaTruco &&
-                jogadores[jogadorId].getDuplaId() != jogadores[jogadorQuePediuTruco].getDuplaId();
-    }
-
-    private void reiniciarMao(Carta[] cartasNaMesa, JLabel[] labelsMesa, int estadoTruco, int pontuacaoAtual, boolean aguardandoRespostaTruco, int rodadaAtual, int[] placarParcial, int cartasJogadasNaRodada, int duplaQuePodeAumentar, int jogadorAtual, int jogadorQuePediuTruco) {
-        for (int i = 0; i < 4; i++) {
-            cartasNaMesa[i] = null;
-            labelsMesa[i].setText("Jogador " + i);
-            labelsMesa[i].setBackground(Color.WHITE);
+        for (JogadorTruco j : jogadores) 
+        {
+            j.getMao().getCartas().clear();
         }
-        estadoTruco = Constants.TRUCO_NAO_TRUCADO;
-        pontuacaoAtual = 1;
-        aguardandoRespostaTruco = false;
-        rodadaAtual = 0;
-        cartasJogadasNaRodada = 0;
-        placarParcial[0] = placarParcial[1] = 0;
-        duplaQuePodeAumentar = -1;
-        jogadorAtual = (jogadorQuePediuTruco + 1) % 4;
-        distribuirCartas();
-        atualizarInterface();
+
+        for (int i = 0; i < 3; i++) 
+        {
+            for (JogadorTruco j : jogadores)
+            {
+                j.getMao().adicionar(baralho.comprarCarta());
+            }
+        }
     }
 
+    public boolean jogarCarta(int jogadorId, int indiceCarta) 
+    {
 
-    
+        if (jogadorId != jogadorAtual) return false;
+
+        if (aguardandoRespostaTruco) return false;
+
+        Carta carta = jogadores[jogadorId].getMao().getCartas().remove(indiceCarta);
+
+        cartasNaMesa[jogadorId] = carta;
+
+        cartasJogadasNaRodada++;
+
+        proximoJogador();
+
+        if (cartasJogadasNaRodada == 4) 
+        {
+            avaliarRodada();
+        }
+
+        return true;
+    }
+
+    private void proximoJogador() 
+    {
+        jogadorAtual = (jogadorAtual + 1) % 4;
+    }
+
+    private void avaliarRodada() 
+    {
+
+        int vencedor = 0;
+        int maiorForca = -1;
+
+        for (int i = 0; i < 4; i++) 
+        {
+
+            CartaTruco carta = (CartaTruco) cartasNaMesa[i];
+
+            if (carta.getForca() > maiorForca)
+            {
+                maiorForca = carta.getForca();
+                vencedor = i;
+            }
+        }
+
+        int dupla = jogadores[vencedor].getDuplaId();
+
+        placarParcial[dupla]++;
+
+        cartasJogadasNaRodada = 0;
+
+        rodadaAtual++;
+
+        for (int i = 0; i < 4; i++) 
+        {
+            cartasNaMesa[i] = null;
+        }
+
+        jogadorAtual = vencedor;
+
+        verificarFimDaMao();
+    }
+
+    private void verificarFimDaMao()
+    {
+
+        if (placarParcial[0] == 2 || placarParcial[1] == 2 || rodadaAtual == 3) 
+        {
+
+            int duplaVencedora;
+
+            if (placarParcial[0] > placarParcial[1])
+                duplaVencedora = 0;
+            else
+                duplaVencedora = 1;
+
+            duplas[duplaVencedora].adicionarPontos(pontuacaoAtual);
+
+            reiniciarMao();
+        }
+    }
+
+    public boolean pedirTruco(int jogadorId) 
+    {
+
+        if (aguardandoRespostaTruco) return false;
+
+        if (estadoTruco >= Constants.TRUCO_DOZE) return false;
+
+        if (cartasJogadasNaRodada >= 2) return false;
+
+        estadoTruco = Constants.TRUCO_TRUCADO;
+        pontuacaoAtual = 3;
+
+        jogadorQuePediuTruco = jogadorId;
+
+        aguardandoRespostaTruco = true;
+
+        duplaQuePodeAumentar = jogadores[jogadorId].getDuplaId();
+
+        return true;
+    }
+
+    public boolean aceitarTruco(int jogadorId) 
+    {
+
+        if (!ehDuplaAdversaria(jogadorId)) return false;
+
+        aguardandoRespostaTruco = false;
+
+        duplaQuePodeAumentar = jogadores[jogadorId].getDuplaId();
+
+        return true;
+    }
+
+    public int correrTruco(int jogadorId) {
+
+        if (!ehDuplaAdversaria(jogadorId)) return 0;
+
+        int duplaPediu = jogadores[jogadorQuePediuTruco].getDuplaId();
+
+        int pontos;
+
+        switch (estadoTruco) {
+
+            case Constants.TRUCO_TRUCADO:
+                pontos = 1;
+                break;
+
+            case Constants.TRUCO_SEIS:
+                pontos = 3;
+                break;
+
+            case Constants.TRUCO_NOVE:
+                pontos = 6;
+                break;
+
+            case Constants.TRUCO_DOZE:
+                pontos = 9;
+                break;
+
+            default:
+                pontos = 1;
+        }
+
+        duplas[duplaPediu].adicionarPontos(pontos);
+
+        reiniciarMao();
+
+        return pontos;
+    }
+
+    public boolean aumentarTruco(int jogadorId) 
+    {
+
+        if (aguardandoRespostaTruco) return false;
+
+        if (jogadores[jogadorId].getDuplaId() != duplaQuePodeAumentar) return false;
+
+        if (estadoTruco == Constants.TRUCO_TRUCADO) 
+        {
+            estadoTruco = Constants.TRUCO_SEIS;
+            pontuacaoAtual = 6;
+        }
+        else if (estadoTruco == Constants.TRUCO_SEIS)
+        {
+            estadoTruco = Constants.TRUCO_NOVE;
+            pontuacaoAtual = 9;
+        }
+        else if (estadoTruco == Constants.TRUCO_NOVE) 
+        {
+            estadoTruco = Constants.TRUCO_DOZE;
+            pontuacaoAtual = 12;
+        }
+        else 
+        {
+            return false;
+        }
+
+        jogadorQuePediuTruco = jogadorId;
+
+        aguardandoRespostaTruco = true;
+
+        duplaQuePodeAumentar = 1 - jogadores[jogadorId].getDuplaId();
+
+        return true;
+    }
+
+    private boolean ehDuplaAdversaria(int jogadorId) 
+    {
+
+        return aguardandoRespostaTruco &&
+               jogadores[jogadorId].getDuplaId() != jogadores[jogadorQuePediuTruco].getDuplaId();
+    }
+
+    public void reiniciarMao() 
+    {
+
+        for (int i = 0; i < 4; i++) 
+        {
+            cartasNaMesa[i] = null;
+        }
+
+        estadoTruco = Constants.TRUCO_NAO_TRUCADO;
+
+        pontuacaoAtual = 1;
+
+        aguardandoRespostaTruco = false;
+
+        rodadaAtual = 0;
+
+        cartasJogadasNaRodada = 0;
+
+        placarParcial[0] = 0;
+        placarParcial[1] = 0;
+
+        duplaQuePodeAumentar = -1;
+
+        distribuirCartas();
+    }
+
+    public JogadorTruco[] getJogadores() {
+        return jogadores;
+    }
+
+    public Dupla[] getDuplas() {
+        return duplas;
+    }
+
+    public Carta[] getCartasNaMesa() {
+        return cartasNaMesa;
+    }
+
+    public int getJogadorAtual() {
+        return jogadorAtual;
+    }
+
+    public int getEstadoTruco() {
+        return estadoTruco;
+    }
+
+    public int getPontuacaoAtual() {
+        return pontuacaoAtual;
+    }
 }
+

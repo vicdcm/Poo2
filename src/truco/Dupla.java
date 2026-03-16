@@ -1,4 +1,4 @@
-
+package truco;
     // Dupla.java
 public class Dupla {
     private final int id;

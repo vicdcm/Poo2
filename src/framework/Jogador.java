@@ -1,5 +1,4 @@
-
-// Jogador.java
+package framework;
 public class Jogador 
 {
     private final int id;

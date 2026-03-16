@@ -1,7 +1,9 @@
+package framework;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+
 
 public class Baralho 
 {
@@ -31,7 +33,7 @@ public class Baralho
         Collections.shuffle(cartas, new Random());
     }
 
-    public Carta comprarCarta() 
+    public Carta comprarCarta(List <Carta> castas) 
     {
         if (cartas.isEmpty()) return null;
         return cartas.remove(cartas.size() - 1);
