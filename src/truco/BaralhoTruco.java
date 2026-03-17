@@ -1,5 +1,9 @@
+package truco;
 import java.util.Arrays;
 import java.util.List;
+
+import framework.Baralho;
+import framework.Carta;
 
 public class BaralhoTruco extends Baralho {
 
@@ -36,6 +40,7 @@ public class BaralhoTruco extends Baralho {
             }
         }
     }
+
 }
 
 

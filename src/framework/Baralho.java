@@ -7,7 +7,7 @@ import java.util.Random;
 
 public class Baralho 
 {
-    private final List<Carta> cartas;
+    protected final List<Carta> cartas;
 
     public Baralho() 
     {
@@ -15,14 +15,14 @@ public class Baralho
         criarBaralho();
     }
 
-    private void criarBaralho()
+    protected void criarBaralho()
     {
         ;
     }
 
-    private void adicionarCartas()
-    {
-        ;
+   protected void adicionarCarta(Carta carta) 
+   {
+        this.cartas.add(carta);
     }
     
     
@@ -33,11 +33,13 @@ public class Baralho
         Collections.shuffle(cartas, new Random());
     }
 
-    public Carta comprarCarta(List <Carta> castas) 
-    {
-        if (cartas.isEmpty()) return null;
-        return cartas.remove(cartas.size() - 1);
+  public Carta comprarCarta() {
+    if (this.cartas == null || this.cartas.isEmpty()) {
+        return null; 
     }
+   
+    return this.cartas.remove(this.cartas.size() - 1);
+}
 
     public boolean isEmpty() 
     {

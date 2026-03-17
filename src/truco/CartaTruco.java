@@ -1,10 +1,14 @@
+package truco;
+
+import framework.Carta;
 public class CartaTruco extends Carta {
 
     public CartaTruco(String valor, String tipo) {
         super(valor, tipo);
     }
 
-    public int getForca() {
+    public int getForca() 
+    {
 
     
         if (getValor().equals(Constants.QUATRO) && getTipo().equals(Constants.ESPADAS)) return 28; // Zape

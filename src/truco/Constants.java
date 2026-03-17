@@ -1,3 +1,4 @@
+package truco;
 public class Constants {
     public static final String AS = "Ás";
     public static final String DOIS = "2";

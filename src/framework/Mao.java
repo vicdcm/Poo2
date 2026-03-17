@@ -35,4 +35,8 @@ public class Mao {
     public List<Carta> getCartas() {
         return new ArrayList<>(cartas);
     }
+
+    public void limpar() {
+    this.cartas.clear();
+}
 }
