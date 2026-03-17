@@ -31,4 +31,16 @@ public class CartaTruco extends Carta {
             default -> 0;
         };
     }
+
+    @Override
+public String toString() {
+    String simbolo = switch (getTipo()) {
+        case Constants.COPAS   -> Constants.SIMBOLO_COPAS;
+        case Constants.OUROS   -> Constants.SIMBOLO_OUROS;
+        case Constants.ESPADAS -> Constants.SIMBOLO_ESPADAS;
+        case Constants.PAUS    -> Constants.SIMBOLO_PAUS;
+        default -> "";
+    };
+    return getValor() + simbolo;
+}
 }

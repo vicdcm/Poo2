@@ -1,19 +1,52 @@
+package truco;
+
+import framework.Carta;
+
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class TrucoGUI extends JFrame
-{
-    // GUI Components
-    private JButton[][] botoesCartas = new JButton[4][3];
-    private JButton[] btnTruco = new JButton[4];
-    private JButton[] btnAceitar = new JButton[4];
-    private JButton[] btnCorrer = new JButton[4];
-    private JButton[] btnSeis = new JButton[4];
-    private JButton[] btnNove = new JButton[4];
-    private JButton[] btnDoze = new JButton[4];
-    private JLabel[] labelsMesa = new JLabel[4];
+/**
+ * GUI fiel ao JogoTruco original.
+ * Quatro jogadores reais compartilham a mesma tela.
+ * Toda a lógica do jogo é delegada a TrucoJogo.
+ */
+public class TrucoGUI extends JFrame {
+
+    // ─── Componentes da interface ─────────────────────────────────────────────
+    private final JButton[][] botoesCartas = new JButton[4][3];
+    private final JButton[]   btnTruco     = new JButton[4];
+    private final JButton[]   btnAceitar   = new JButton[4];
+    private final JButton[]   btnCorrer    = new JButton[4];
+    private final JButton[]   btnSeis      = new JButton[4];
+    private final JButton[]   btnNove      = new JButton[4];
+    private final JButton[]   btnDoze      = new JButton[4];
+    private final JLabel[]    labelsMesa   = new JLabel[4];
+
+    private JLabel lblEstado;
+    private JLabel lblPontuacao;
+
+    // ─── Lógica do jogo ───────────────────────────────────────────────────────
+    private TrucoJogo jogo;
+
+    // ─── Construtor ──────────────────────────────────────────────────────────
+
+    public TrucoGUI() {
+        setTitle("Truco - 4 Jogadores Reais");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout());
+
+        jogo = new TrucoJogo();
+
+        criarPainelPontos();
+        criarPainelJogo();
+        atualizarInterface();
+
+        setSize(1000, 800);
+        setLocationRelativeTo(null);
+    }
+
+    // ─── Construção da interface ──────────────────────────────────────────────
 
     private void criarPainelPontos() {
         JPanel painel = new JPanel(new GridLayout(2, 1, 5, 5));
@@ -69,19 +102,19 @@ public class TrucoGUI extends JFrame
             JButton btn = new JButton("Carta " + (i + 1));
             btn.setPreferredSize(new Dimension(90, 100));
             btn.setFont(new Font("Arial", Font.BOLD, 11));
-            int idx = i;
-            btn.addActionListener(e -> jogarCarta(jogadorId, idx));
+            final int indice = i;
+            btn.addActionListener(e -> aoJogarCarta(jogadorId, indice));
             botoesCartas[jogadorId][i] = btn;
             painelCartas.add(btn);
         }
 
         JPanel painelTruco = new JPanel(new FlowLayout());
-        btnTruco[jogadorId] = criarBotao("Truco", e -> pedirTruco(jogadorId));
-        btnAceitar[jogadorId] = criarBotao("Aceitar", e -> aceitarTruco(jogadorId));
-        btnCorrer[jogadorId] = criarBotao("Correr", e -> correrTruco(jogadorId));
-        btnSeis[jogadorId] = criarBotao("Seis", e -> aumentarTruco(jogadorId, Constants.TRUCO_SEIS, 6));
-        btnNove[jogadorId] = criarBotao("Nove", e -> aumentarTruco(jogadorId, Constants.TRUCO_NOVE, 9));
-        btnDoze[jogadorId] = criarBotao("Doze", e -> aumentarTruco(jogadorId, Constants.TRUCO_DOZE, 12));
+        btnTruco[jogadorId]   = criarBotao("Truco",   e -> aoPedirTruco(jogadorId));
+        btnAceitar[jogadorId] = criarBotao("Aceitar", e -> aoAceitarTruco(jogadorId));
+        btnCorrer[jogadorId]  = criarBotao("Correr",  e -> aoCorrerTruco(jogadorId));
+        btnSeis[jogadorId]    = criarBotao("Seis",    e -> aoAumentarTruco(jogadorId));
+        btnNove[jogadorId]    = criarBotao("Nove",    e -> aoAumentarTruco(jogadorId));
+        btnDoze[jogadorId]    = criarBotao("Doze",    e -> aoAumentarTruco(jogadorId));
 
         painelTruco.add(btnTruco[jogadorId]);
         painelTruco.add(btnAceitar[jogadorId]);
@@ -91,7 +124,7 @@ public class TrucoGUI extends JFrame
         painelTruco.add(btnDoze[jogadorId]);
 
         painel.add(painelCartas, BorderLayout.NORTH);
-        painel.add(painelTruco, BorderLayout.SOUTH);
+        painel.add(painelTruco,  BorderLayout.SOUTH);
         return painel;
     }
 
@@ -103,13 +136,83 @@ public class TrucoGUI extends JFrame
         return btn;
     }
 
-     private void atualizarInterface() {
+    // ─── Ações dos jogadores ──────────────────────────────────────────────────
+
+    private void aoJogarCarta(int jogadorId, int indice) {
+        // Captura a carta antes de removê-la via TrucoJogo
+        Carta carta = jogo.getJogadores()[jogadorId].getMao().get(indice);
+        if (carta == null) return;
+
+        int rodadaAntes = jogo.getRodadaAtual();
+        boolean jogou   = jogo.jogarCarta(jogadorId, indice);
+        if (!jogou) return;
+
+        // Mostra a carta jogada na mesa
+        labelsMesa[jogadorId].setText("J" + jogadorId + ": " + carta);
+        labelsMesa[jogadorId].setBackground(new Color(220, 220, 255));
+
+        int rodadaDepois = jogo.getRodadaAtual();
+
+        if (jogo.jogoAcabou()) {
+            atualizarInterface();
+            verificarFimDeJogo();
+            return;
+        }
+
+        // Rodada concluída e nova mão iniciada (rodada voltou a 0 e cartas redistribuídas)
+        if (rodadaDepois == 0 && rodadaAntes != 0) {
+            JOptionPane.showMessageDialog(this, montarMensagemFimMao());
+            limparMesa();
+        }
+        // Rodada concluída mas mão continua (rodada avançou)
+        else if (rodadaDepois > rodadaAntes) {
+            limparMesa();
+        }
+
+        atualizarInterface();
+    }
+
+    private void aoPedirTruco(int jogadorId) {
+        jogo.pedirTruco(jogadorId);
+        atualizarInterface();
+    }
+
+    private void aoAceitarTruco(int jogadorId) {
+        jogo.aceitarTruco(jogadorId);
+        atualizarInterface();
+    }
+
+    private void aoCorrerTruco(int jogadorId) {
+        int duplaPediu = jogo.getJogadores()[jogo.getJogadorQuePediuTruco()].getDuplaId();
+        int pontos     = pontosAoCorre();
+
+        jogo.correrTruco(jogadorId);
+
+        JOptionPane.showMessageDialog(this,
+                "Dupla " + duplaPediu + " ganhou " + pontos + " ponto(s)!");
+        limparMesa();
+        atualizarInterface();
+        verificarFimDeJogo();
+    }
+
+    private void aoAumentarTruco(int jogadorId) {
+        jogo.aumentarTruco(jogadorId);
+        atualizarInterface();
+    }
+
+    // ─── Atualização da interface ─────────────────────────────────────────────
+
+    private void atualizarInterface() {
+        JogadorTruco[] jogadores = jogo.getJogadores();
+        int  jogadorAtual = jogo.getJogadorAtual();
+        boolean aguardando = jogo.isAguardandoResposta();
+
         for (int j = 0; j < 4; j++) {
-            Mao mao = jogadores[j].getMao();
+            framework.Mao mao = jogadores[j].getMao();
             for (int i = 0; i < 3; i++) {
                 if (i < mao.tamanho()) {
                     botoesCartas[j][i].setText(mao.get(i).toString());
-                    botoesCartas[j][i].setEnabled(j == jogadorAtual && !aguardandoRespostaTruco);
+                    botoesCartas[j][i].setEnabled(j == jogadorAtual && !aguardando);
                 } else {
                     botoesCartas[j][i].setText("");
                     botoesCartas[j][i].setEnabled(false);
@@ -118,34 +221,107 @@ public class TrucoGUI extends JFrame
             atualizarBotoesTruco(j);
         }
 
-        String estado = "Rodada " + (rodadaAtual + 1) + " — Vez do Jogador " + jogadorAtual;
-        if (aguardandoRespostaTruco) {
-            int duplaResponde = 1 - jogadores[jogadorQuePediuTruco].getDuplaId();
+        String estado = "Rodada " + (jogo.getRodadaAtual() + 1)
+                + " — Vez do Jogador " + jogadorAtual;
+        if (aguardando) {
+            int duplaResponde = 1 - jogadores[jogo.getJogadorQuePediuTruco()].getDuplaId();
             estado += " — Dupla " + duplaResponde + " responde ao TRUCO!";
         }
         lblEstado.setText(estado);
+
+        Dupla[] duplas = jogo.getDuplas();
         lblPontuacao.setText(String.format("Dupla 0: %d   |   Dupla 1: %d",
                 duplas[0].getPontuacao(), duplas[1].getPontuacao()));
     }
 
     private void atualizarBotoesTruco(int jogadorId) {
-        int minhaDupla = jogadores[jogadorId].getDuplaId();
-        boolean possoTrucarPrimeiraVez = (estadoTruco == Constants.TRUCO_NAO_TRUCADO) &&
-                !aguardandoRespostaTruco &&
-                cartasJogadasNaRodada < 2;
-        boolean souDuplaAdversaria = aguardandoRespostaTruco &&
-                minhaDupla != jogadores[jogadorQuePediuTruco].getDuplaId();
-        boolean possoAumentar = !aguardandoRespostaTruco &&
-                minhaDupla == duplaQuePodeAumentar;
+        int  minhaDupla = jogo.getJogadores()[jogadorId].getDuplaId();
+        boolean aguardando = jogo.isAguardandoResposta();
+        int  estado     = jogo.getEstadoTruco();
+        int  pediu      = jogo.getJogadorQuePediuTruco();
+
+        boolean possoTrucarPrimeiraVez =
+                estado == Constants.TRUCO_NAO_TRUCADO &&
+                !aguardando &&
+                jogo.getCartasJogadasNaRodada() < 2;
+
+        boolean souAdversario =
+                aguardando &&
+                minhaDupla != jogo.getJogadores()[pediu].getDuplaId();
+
+        boolean possoAumentar =
+                !aguardando &&
+                estado != Constants.TRUCO_NAO_TRUCADO &&
+                estado != Constants.TRUCO_DOZE &&
+                minhaDupla == duplaQuePodeAumentarLocal();
 
         btnTruco[jogadorId].setEnabled(possoTrucarPrimeiraVez);
-        btnAceitar[jogadorId].setEnabled(souDuplaAdversaria);
-        btnCorrer[jogadorId].setEnabled(souDuplaAdversaria);
-        btnSeis[jogadorId].setEnabled(possoAumentar && estadoTruco == Constants.TRUCO_TRUCADO);
-        btnNove[jogadorId].setEnabled(possoAumentar && estadoTruco == Constants.TRUCO_SEIS);
-        btnDoze[jogadorId].setEnabled(possoAumentar && estadoTruco == Constants.TRUCO_NOVE);
+        btnAceitar[jogadorId].setEnabled(souAdversario);
+        btnCorrer[jogadorId].setEnabled(souAdversario);
+        btnSeis[jogadorId].setEnabled(possoAumentar && estado == Constants.TRUCO_TRUCADO);
+        btnNove[jogadorId].setEnabled(possoAumentar && estado == Constants.TRUCO_SEIS);
+        btnDoze[jogadorId].setEnabled(possoAumentar && estado == Constants.TRUCO_NOVE);
     }
 
+    /**
+     * A dupla que pode aumentar é sempre a adversária de quem pediu/aumentou por último,
+     * pois após aceitar, quem aceitou passa a poder subir a aposta.
+     */
+    private int duplaQuePodeAumentarLocal() {
+        if (jogo.getEstadoTruco() == Constants.TRUCO_NAO_TRUCADO) return -1;
+        if (jogo.isAguardandoResposta()) return -1;
+        int duplaPediu = jogo.getJogadores()[jogo.getJogadorQuePediuTruco()].getDuplaId();
+        return 1 - duplaPediu;
+    }
 
+    // ─── Auxiliares ──────────────────────────────────────────────────────────
 
+    private void limparMesa() {
+        for (int i = 0; i < 4; i++) {
+            labelsMesa[i].setText("Jogador " + i);
+            labelsMesa[i].setBackground(Color.WHITE);
+        }
+    }
+
+    private String montarMensagemFimMao() {
+        Dupla[] duplas = jogo.getDuplas();
+        // A última dupla a ganhar pontos é quem ganhou a mão — comparamos com o estado atual
+        // Como TrucoJogo já atualizou a pontuação, basta informar o estado do placar
+        return String.format("Mão encerrada!%nDupla 0: %d pts  |  Dupla 1: %d pts",
+                duplas[0].getPontuacao(), duplas[1].getPontuacao());
+    }
+
+    private int pontosAoCorre() {
+        return switch (jogo.getEstadoTruco()) {
+            case Constants.TRUCO_TRUCADO -> 1;
+            case Constants.TRUCO_SEIS    -> 3;
+            case Constants.TRUCO_NOVE    -> 6;
+            case Constants.TRUCO_DOZE    -> 9;
+            default -> 1;
+        };
+    }
+
+    private void verificarFimDeJogo() {
+        if (!jogo.jogoAcabou()) return;
+
+        int venc = jogo.getDuplaVencedora();
+        JOptionPane.showMessageDialog(this, "Dupla " + venc + " VENCEU O JOGO!");
+
+        int opcao = JOptionPane.showConfirmDialog(this,
+                "Deseja jogar novamente?", "Fim de Jogo",
+                JOptionPane.YES_NO_OPTION);
+        if (opcao == JOptionPane.YES_OPTION) {
+            jogo = new TrucoJogo();
+            limparMesa();
+            atualizarInterface();
+        } else {
+            System.exit(0);
+        }
+    }
+
+    // ─── Main ─────────────────────────────────────────────────────────────────
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new TrucoGUI().setVisible(true));
+    }
 }
