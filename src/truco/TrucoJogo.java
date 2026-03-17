@@ -11,7 +11,7 @@ public class TrucoJogo {
     private Carta[] cartasNaMesa;
  
     private int jogadorAtual;
-    private int jogadorInicial;           // NOVO: controla rotação entre mãos
+    private int jogadorInicial;           
     private int jogadorQuePediuTruco;
  
     private int estadoTruco;
@@ -21,7 +21,7 @@ public class TrucoJogo {
  
     private int rodadaAtual;
     private int cartasJogadasNaRodada;
-    private int vencedorPrimeiraRodada;   // NOVO: desempate de mão
+    private int vencedorPrimeiraRodada;   
  
     private int duplaQuePodeAumentar;
     private int[] placarParcial;
@@ -34,7 +34,7 @@ public class TrucoJogo {
         inicializarJogo();
     }
  
-    // ─── Inicialização ───────────────────────────────────────────────────────
+    
  
     private void inicializarJogo() {
         for (int i = 0; i < 4; i++) {
@@ -121,13 +121,13 @@ public class TrucoJogo {
         verificarFimDaMao();
     }
  
-    // Extrai força sem cast inseguro
+ 
     private int getForcaCarta(Carta carta) {
         if (carta instanceof CartaTruco ct) return ct.getForca();
         return 0;
     }
  
-    // CORRIGIDO: empate de mão → vence quem ganhou a 1ª rodada
+
     private void verificarFimDaMao() {
         boolean fimDaMao = placarParcial[0] == 2 || placarParcial[1] == 2 || rodadaAtual == 3;
         if (!fimDaMao) return;
@@ -144,30 +144,26 @@ public class TrucoJogo {
  
         duplas[duplaVencedora].adicionarPontos(pontuacaoAtual);
  
-        // NOVO: rotação de quem inicia a próxima mão
+  
         jogadorInicial = (jogadorInicial + 1) % 4;
         jogadorAtual   = jogadorInicial;
  
         reiniciarMao();
     }
  
-    // ─── Fim de jogo ─────────────────────────────────────────────────────────
- 
-    // NOVO
+
     public boolean jogoAcabou() {
         return duplas[0].venceu() || duplas[1].venceu();
     }
  
-    // NOVO
+    
     public int getDuplaVencedora() {
         if (duplas[0].venceu()) return 0;
         if (duplas[1].venceu()) return 1;
         return -1;
     }
  
-    // ─── Truco ───────────────────────────────────────────────────────────────
- 
-    // CORRIGIDO: só permite pedir quando não trucado; duplaQuePodeAumentar = adversária
+  
     public boolean pedirTruco(int jogadorId) {
         if (estadoTruco != Constants.TRUCO_NAO_TRUCADO) return false;
         if (aguardandoRespostaTruco) return false;
@@ -177,14 +173,14 @@ public class TrucoJogo {
         pontuacaoAtual = 3;
         jogadorQuePediuTruco = jogadorId;
         aguardandoRespostaTruco = true;
-        duplaQuePodeAumentar = 1 - jogadores[jogadorId].getDuplaId(); // CORRIGIDO
+        duplaQuePodeAumentar = 1 - jogadores[jogadorId].getDuplaId(); 
         return true;
     }
  
     public boolean aceitarTruco(int jogadorId) {
         if (!ehDuplaAdversaria(jogadorId)) return false;
         aguardandoRespostaTruco = false;
-        // Após aceitar, a dupla que aceitou pode aumentar
+        
         duplaQuePodeAumentar = jogadores[jogadorId].getDuplaId();
         return true;
     }
@@ -193,7 +189,7 @@ public class TrucoJogo {
         if (!ehDuplaAdversaria(jogadorId)) return;
  
         int duplaPediu = jogadores[jogadorQuePediuTruco].getDuplaId();
-        // Quem pediu ganha os pontos do nível anterior ao current
+        
         int pontos = (estadoTruco == Constants.TRUCO_TRUCADO) ? 1 : (pontuacaoAtual - 3);
         duplas[duplaPediu].adicionarPontos(pontos);
  
@@ -202,7 +198,7 @@ public class TrucoJogo {
         reiniciarMao();
     }
  
-    // CORRIGIDO: permite aumentar como resposta (aguardandoRespostaTruco == true)
+
     public boolean aumentarTruco(int jogadorId) {
         if (jogadores[jogadorId].getDuplaId() != duplaQuePodeAumentar) return false;
         if (estadoTruco == Constants.TRUCO_DOZE) return false;
@@ -240,7 +236,7 @@ public class TrucoJogo {
         distribuirCartas();
     }
  
-    // ─── Getters (com cópias defensivas) ─────────────────────────────────────
+    
  
     public JogadorTruco[] getJogadores()        { return jogadores.clone(); }
     public Carta[]        getCartasNaMesa()      { return cartasNaMesa.clone(); }

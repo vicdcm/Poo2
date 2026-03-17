@@ -5,10 +5,12 @@ import java.util.List;
 import framework.Baralho;
 import framework.Carta;
 
-public class BaralhoTruco extends Baralho {
+public class BaralhoTruco extends Baralho 
+{
 
     @Override
-    protected void criarBaralho() {
+    protected void criarBaralho() 
+    {
 
         adicionarCartasRanqueadas(
                 Arrays.asList(Constants.AS, Constants.DOIS, Constants.TRES),

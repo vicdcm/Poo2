@@ -7,14 +7,11 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.util.List;
 
-/**
- * GUI do UNO para 4 jogadores reais na mesma tela.
- * Layout idêntico ao TrucoGUI: painéis nas 4 bordas, mesa central.
- */
+
 public class UnoGUI extends JFrame {
 
-    // ─── Componentes ─────────────────────────────────────────────────────────
-    private final JButton[][] botoesCartas = new JButton[4][0];  // dinâmico
+    // atbs para interface
+    private final JButton[][] botoesCartas = new JButton[4][0];  
     private final JPanel[]    painelCartas = new JPanel[4];
     private final JButton[]   btnComprar   = new JButton[4];
     private final JButton[]   btnUno       = new JButton[4];
@@ -25,13 +22,11 @@ public class UnoGUI extends JFrame {
     private JLabel lblCartaTopo;
     private JLabel lblSentido;
 
-    // ─── Lógica ──────────────────────────────────────────────────────────────
-    private UnoJogo jogo;
+    private UnoJogo jogo; //estado do jogo
 
-    // ─── Construtor ──────────────────────────────────────────────────────────
 
     public UnoGUI() {
-        setTitle("UNO - 4 Jogadores");
+        setTitle("UNO");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
@@ -45,7 +40,6 @@ public class UnoGUI extends JFrame {
         setLocationRelativeTo(null);
     }
 
-    // ─── Construção ──────────────────────────────────────────────────────────
 
     private void criarPainelStatus() {
         JPanel painel = new JPanel(new GridLayout(2, 1, 5, 5));
@@ -84,7 +78,7 @@ public class UnoGUI extends JFrame {
     private void criarPainelJogo() {
         JPanel painelCentral = new JPanel(new BorderLayout());
 
-        // Mesa central — apenas decorativa, a info fica no painel de status
+        
         JPanel mesa = new JPanel(new GridBagLayout());
         mesa.setBorder(BorderFactory.createTitledBorder("Mesa"));
         mesa.setBackground(new Color(50, 120, 60));
@@ -106,7 +100,7 @@ public class UnoGUI extends JFrame {
         JPanel painel = new JPanel(new BorderLayout());
         painel.setBorder(BorderFactory.createTitledBorder("Jogador " + id));
 
-        // Painel de cartas (dinâmico — recriado a cada atualização)
+      
         painelCartas[id] = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 4));
         JScrollPane scroll = new JScrollPane(painelCartas[id],
                 JScrollPane.VERTICAL_SCROLLBAR_NEVER,
@@ -115,7 +109,7 @@ public class UnoGUI extends JFrame {
         scroll.setBorder(null);
         painel.add(scroll, BorderLayout.CENTER);
 
-        // Painel de ações
+        
         JPanel acoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 2));
 
         btnComprar[id] = criarBotao("Comprar", e -> aoComprarCarta(id));
@@ -129,8 +123,9 @@ public class UnoGUI extends JFrame {
         acoes.add(btnComprar[id]);
         acoes.add(btnUno[id]);
 
-        // Botões para acusar cada um dos outros jogadores
-        for (int alvo = 0; alvo < 4; alvo++) {
+       
+        for (int alvo = 0; alvo < 4; alvo++) 
+            {
             if (alvo == id) continue;
             final int a = alvo;
             btnAcusar[id][alvo] = criarBotao("Acusar J" + alvo, e -> aoAcusarUno(id, a));
@@ -142,7 +137,8 @@ public class UnoGUI extends JFrame {
         return painel;
     }
 
-    private JButton criarBotao(String texto, ActionListener acao) {
+    private JButton criarBotao(String texto, ActionListener acao) 
+    {
         JButton btn = new JButton(texto);
         btn.setFont(new Font("Arial", Font.PLAIN, 9));
         btn.setPreferredSize(new Dimension(75, 25));
@@ -150,14 +146,14 @@ public class UnoGUI extends JFrame {
         return btn;
     }
 
-    // ─── Ações ───────────────────────────────────────────────────────────────
+   //ações interface
 
     private void aoJogarCarta(int jogadorId, int indice) {
         CartaUno carta = (CartaUno) jogo.getJogadores()[jogadorId].getMao().get(indice);
         if (carta == null) return;
 
         if (carta.isCuringa()) {
-            // Pede a cor ao jogador antes de confirmar a jogada
+            
             String cor = pedirEscolhaDeCor(jogadorId);
             if (cor == null) return; // cancelou
             jogo.jogarCarta(jogadorId, indice, cor);
@@ -177,9 +173,14 @@ public class UnoGUI extends JFrame {
     private void aoComprarCarta(int jogadorId) {
         CartaUno carta = jogo.comprarCarta(jogadorId);
         if (carta == null) {
-            JOptionPane.showMessageDialog(this,
-                    "Não é sua vez ou o baralho está vazio.",
-                    "Aviso", JOptionPane.INFORMATION_MESSAGE);
+            if (jogo.getJogadorAtual() != jogadorId) {
+                JOptionPane.showMessageDialog(this,
+                        "Não é sua vez!", "Aviso", JOptionPane.WARNING_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "Você possui cartas compatíveis e deve jogar uma delas.",
+                        "Compra não permitida", JOptionPane.WARNING_MESSAGE);
+            }
             return;
         }
         JOptionPane.showMessageDialog(this,
@@ -228,14 +229,14 @@ public class UnoGUI extends JFrame {
         return escolha;
     }
 
-    // ─── Atualização da interface ─────────────────────────────────────────────
+    // update interface
 
     private void atualizarInterface() {
         int atual     = jogo.getJogadorAtual();
         boolean aguardando = jogo.isAguardandoEscolhaCor();
         JogadorUno[] jogadores = jogo.getJogadores();
 
-        // Recria os botões de carta para cada jogador
+       
         for (int j = 0; j < 4; j++) {
             painelCartas[j].removeAll();
             List<Carta> cartas = jogadores[j].getMao().getCartas();
@@ -271,7 +272,7 @@ public class UnoGUI extends JFrame {
             }
         }
 
-        // Labels de status
+  
         CartaUno topo = jogo.getCartaTopo();
         lblCartaTopo.setText("Topo: " + topo);
         lblCorAtual.setText("Cor: " + jogo.getCorAtual());
@@ -282,12 +283,12 @@ public class UnoGUI extends JFrame {
         if (aguardando) estado += "  —  Escolha a cor do curinga!";
         lblEstado.setText(estado);
 
-        // Cor de fundo do label de cor
+
         lblCorAtual.setBackground(corDoLabel(jogo.getCorAtual()));
         lblCorAtual.setOpaque(true);
     }
 
-    // ─── Auxiliares ──────────────────────────────────────────────────────────
+   
 
     private Color corDaCarta(CartaUno carta) {
         return switch (carta.getCor()) {

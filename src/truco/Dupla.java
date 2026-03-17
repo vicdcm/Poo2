@@ -1,10 +1,12 @@
 package truco;
-    // Dupla.java
-public class Dupla {
+    
+public class Dupla 
+{
     private final int id;
     private int pontuacao;
 
-    public Dupla(int id) {
+    public Dupla(int id) 
+    {
         this.id = id;
         this.pontuacao = 0;
     }

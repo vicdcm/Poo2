@@ -5,18 +5,6 @@ import framework.Carta;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Lógica completa do jogo de UNO para 4 jogadores.
- *
- * Regras implementadas:
- *  - Cartas numéricas: joga se mesma cor ou mesmo número
- *  - Pular: próximo jogador perde a vez
- *  - Inverter: inverte o sentido do jogo
- *  - Curinga: jogador escolhe a nova cor ativa
- *  - UNO!: ao ficar com 1 carta, deve declarar; se acusado antes de declarar,
- *           compra 2 cartas de penalidade
- *  - Fim de jogo: primeiro a zerar a mão vence
- */
 public class UnoJogo {
 
     private static final int NUM_JOGADORES  = 4;
@@ -170,6 +158,7 @@ public class UnoJogo {
     public CartaUno comprarCarta(int jogadorId) {
         if (jogadorId != jogadorAtual) return null;
         if (aguardandoEscolhaCor) return null;
+        if (jogadorTemJogadaValida(jogadorId)) return null;
 
         reabastecerBaralhoSeNecessario();
         if (baralho.isEmpty()) return null;

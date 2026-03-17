@@ -6,14 +6,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 
-/**
- * GUI fiel ao JogoTruco original.
- * Quatro jogadores reais compartilham a mesma tela.
- * Toda a lógica do jogo é delegada a TrucoJogo.
- */
+
 public class TrucoGUI extends JFrame {
 
-    // ─── Componentes da interface ─────────────────────────────────────────────
+    // atributos interface
     private final JButton[][] botoesCartas = new JButton[4][3];
     private final JButton[]   btnTruco     = new JButton[4];
     private final JButton[]   btnAceitar   = new JButton[4];
@@ -26,10 +22,10 @@ public class TrucoGUI extends JFrame {
     private JLabel lblEstado;
     private JLabel lblPontuacao;
 
-    // ─── Lógica do jogo ───────────────────────────────────────────────────────
+    
     private TrucoJogo jogo;
 
-    // ─── Construtor ──────────────────────────────────────────────────────────
+    
 
     public TrucoGUI() {
         setTitle("Truco - 4 Jogadores Reais");
@@ -46,7 +42,7 @@ public class TrucoGUI extends JFrame {
         setLocationRelativeTo(null);
     }
 
-    // ─── Construção da interface ──────────────────────────────────────────────
+    //  cria paineis
 
     private void criarPainelPontos() {
         JPanel painel = new JPanel(new GridLayout(2, 1, 5, 5));
@@ -136,7 +132,7 @@ public class TrucoGUI extends JFrame {
         return btn;
     }
 
-    // ─── Ações dos jogadores ──────────────────────────────────────────────────
+    // jogador
 
     private void aoJogarCarta(int jogadorId, int indice) {
         // Captura a carta antes de removê-la via TrucoJogo
@@ -147,7 +143,7 @@ public class TrucoGUI extends JFrame {
         boolean jogou   = jogo.jogarCarta(jogadorId, indice);
         if (!jogou) return;
 
-        // Mostra a carta jogada na mesa
+       
         labelsMesa[jogadorId].setText("J" + jogadorId + ": " + carta);
         labelsMesa[jogadorId].setBackground(new Color(220, 220, 255));
 
@@ -159,12 +155,11 @@ public class TrucoGUI extends JFrame {
             return;
         }
 
-        // Rodada concluída e nova mão iniciada (rodada voltou a 0 e cartas redistribuídas)
         if (rodadaDepois == 0 && rodadaAntes != 0) {
             JOptionPane.showMessageDialog(this, montarMensagemFimMao());
             limparMesa();
         }
-        // Rodada concluída mas mão continua (rodada avançou)
+   
         else if (rodadaDepois > rodadaAntes) {
             limparMesa();
         }
@@ -187,7 +182,7 @@ public class TrucoGUI extends JFrame {
         atualizarInterface();
     }
 
-    // ─── Atualização da interface ─────────────────────────────────────────────
+  //att interface
 
     private void atualizarInterface() {
         JogadorTruco[] jogadores = jogo.getJogadores();
@@ -250,8 +245,7 @@ public class TrucoGUI extends JFrame {
         btnDoze[jogadorId].setEnabled(possoAumentar && estado == Constants.TRUCO_NOVE);
     }
 
-    // ─── Auxiliares de apresentação ──────────────────────────────────────────
-
+  
     private void limparMesa() {
         for (int i = 0; i < 4; i++) {
             labelsMesa[i].setText("Jogador " + i);
@@ -282,7 +276,7 @@ public class TrucoGUI extends JFrame {
     }
 
     private void aoCorrerTruco(int jogadorId) {
-        // pontosAoCorre() consultado ANTES de correrTruco() alterar o estado
+
         int duplaPediu = jogo.getJogadores()[jogo.getJogadorQuePediuTruco()].getDuplaId();
         int pontos     = jogo.getPontosAoCorre();
 

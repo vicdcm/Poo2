@@ -2,21 +2,14 @@ package Uno;
 
 import framework.Carta;
 
-/**
- * Carta de UNO.
- * valor = "0"–"9", "Pular", "Inverter", "Curinga"
- * tipo  = cor da carta (Vermelho, Azul, Verde, Amarelo, Preto)
- *
- * Cartas curinga têm tipo "Preto" e não possuem cor fixa;
- * a cor ativa é definida pelo jogador ao jogá-las e fica em UnoJogo.
- */
+
 public class CartaUno extends Carta {
 
     public CartaUno(String valor, String cor) {
         super(valor, cor);
     }
 
-    /** Cor da carta (Preto para curingas). */
+
     public String getCor() {
         return getTipo();
     }
