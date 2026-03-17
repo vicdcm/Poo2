@@ -155,7 +155,7 @@ public class TrucoGUI extends JFrame {
 
         if (jogo.jogoAcabou()) {
             atualizarInterface();
-            verificarFimDeJogo();
+            exibirFimDeJogo();
             return;
         }
 
@@ -180,19 +180,6 @@ public class TrucoGUI extends JFrame {
     private void aoAceitarTruco(int jogadorId) {
         jogo.aceitarTruco(jogadorId);
         atualizarInterface();
-    }
-
-    private void aoCorrerTruco(int jogadorId) {
-        int duplaPediu = jogo.getJogadores()[jogo.getJogadorQuePediuTruco()].getDuplaId();
-        int pontos     = pontosAoCorre();
-
-        jogo.correrTruco(jogadorId);
-
-        JOptionPane.showMessageDialog(this,
-                "Dupla " + duplaPediu + " ganhou " + pontos + " ponto(s)!");
-        limparMesa();
-        atualizarInterface();
-        verificarFimDeJogo();
     }
 
     private void aoAumentarTruco(int jogadorId) {
@@ -253,7 +240,7 @@ public class TrucoGUI extends JFrame {
                 !aguardando &&
                 estado != Constants.TRUCO_NAO_TRUCADO &&
                 estado != Constants.TRUCO_DOZE &&
-                minhaDupla == duplaQuePodeAumentarLocal();
+                minhaDupla == jogo.getDuplaQuePodeAumentar();
 
         btnTruco[jogadorId].setEnabled(possoTrucarPrimeiraVez);
         btnAceitar[jogadorId].setEnabled(souAdversario);
@@ -263,18 +250,7 @@ public class TrucoGUI extends JFrame {
         btnDoze[jogadorId].setEnabled(possoAumentar && estado == Constants.TRUCO_NOVE);
     }
 
-    /**
-     * A dupla que pode aumentar é sempre a adversária de quem pediu/aumentou por último,
-     * pois após aceitar, quem aceitou passa a poder subir a aposta.
-     */
-    private int duplaQuePodeAumentarLocal() {
-        if (jogo.getEstadoTruco() == Constants.TRUCO_NAO_TRUCADO) return -1;
-        if (jogo.isAguardandoResposta()) return -1;
-        int duplaPediu = jogo.getJogadores()[jogo.getJogadorQuePediuTruco()].getDuplaId();
-        return 1 - duplaPediu;
-    }
-
-    // ─── Auxiliares ──────────────────────────────────────────────────────────
+    // ─── Auxiliares de apresentação ──────────────────────────────────────────
 
     private void limparMesa() {
         for (int i = 0; i < 4; i++) {
@@ -285,25 +261,11 @@ public class TrucoGUI extends JFrame {
 
     private String montarMensagemFimMao() {
         Dupla[] duplas = jogo.getDuplas();
-        // A última dupla a ganhar pontos é quem ganhou a mão — comparamos com o estado atual
-        // Como TrucoJogo já atualizou a pontuação, basta informar o estado do placar
         return String.format("Mão encerrada!%nDupla 0: %d pts  |  Dupla 1: %d pts",
                 duplas[0].getPontuacao(), duplas[1].getPontuacao());
     }
 
-    private int pontosAoCorre() {
-        return switch (jogo.getEstadoTruco()) {
-            case Constants.TRUCO_TRUCADO -> 1;
-            case Constants.TRUCO_SEIS    -> 3;
-            case Constants.TRUCO_NOVE    -> 6;
-            case Constants.TRUCO_DOZE    -> 9;
-            default -> 1;
-        };
-    }
-
-    private void verificarFimDeJogo() {
-        if (!jogo.jogoAcabou()) return;
-
+    void exibirFimDeJogo() {
         int venc = jogo.getDuplaVencedora();
         JOptionPane.showMessageDialog(this, "Dupla " + venc + " VENCEU O JOGO!");
 
@@ -319,9 +281,17 @@ public class TrucoGUI extends JFrame {
         }
     }
 
-    // ─── Main ─────────────────────────────────────────────────────────────────
+    private void aoCorrerTruco(int jogadorId) {
+        // pontosAoCorre() consultado ANTES de correrTruco() alterar o estado
+        int duplaPediu = jogo.getJogadores()[jogo.getJogadorQuePediuTruco()].getDuplaId();
+        int pontos     = jogo.getPontosAoCorre();
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new TrucoGUI().setVisible(true));
+        jogo.correrTruco(jogadorId);
+
+        JOptionPane.showMessageDialog(this,
+                "Dupla " + duplaPediu + " ganhou " + pontos + " ponto(s)!");
+        limparMesa();
+        atualizarInterface();
+        if (jogo.jogoAcabou()) exibirFimDeJogo();
     }
 }
